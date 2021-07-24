@@ -1,5 +1,9 @@
+import me.champeau.jmh.JMHTask
+import net.ltgt.gradle.errorprone.errorprone
+
 plugins {
   id("ai.java-conventions")
+  id("ai.jmh-conventions")
   id("ai.sdk-version-file")
   id("com.github.johnrengelman.shadow")
 }
@@ -77,4 +81,37 @@ dependencies {
 
   testImplementation("com.microsoft.jfr:jfr-streaming")
   testImplementation("com.azure:azure-storage-blob")
+}
+
+tasks {
+
+  if (gradle.startParameter.taskNames.any { it.startsWith(":agent:agent-tooling:jmh") }) {
+    // TODO(trask) jmh tasks fails without disabling errorprone (plug-in not found: ErrorProne)
+    withType<JavaCompile>().configureEach {
+      options.errorprone {
+        isEnabled.set(false)
+      }
+    }
+  }
+
+  // TODO(trask) move to otel.jmh-conventions?
+  val jmhFork = gradle.startParameter.projectProperties["jmh.fork"]?.toInt()
+  val jmhWarmupIterations = gradle.startParameter.projectProperties["jmh.warmupIterations"]?.toInt()
+  val jmhIterations = gradle.startParameter.projectProperties["jmh.iterations"]?.toInt()
+  val jmhIncludes = gradle.startParameter.projectProperties["jmh.includes"]
+
+  named<JMHTask>("jmh") {
+    if (jmhFork != null) {
+      fork.set(jmhFork)
+    }
+    if (jmhWarmupIterations != null) {
+      warmupIterations.set(jmhWarmupIterations)
+    }
+    if (jmhIterations != null) {
+      iterations.set(jmhIterations)
+    }
+    if (jmhIncludes != null) {
+      includes.addAll(jmhIncludes.split(','))
+    }
+  }
 }

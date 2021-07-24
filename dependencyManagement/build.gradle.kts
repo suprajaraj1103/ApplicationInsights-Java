@@ -56,6 +56,11 @@ val DEPENDENCY_SETS = listOf(
     listOf("slf4j-api", "slf4j-simple", "log4j-over-slf4j", "jcl-over-slf4j", "jul-to-slf4j")
   ),
   DependencySet(
+    "org.openjdk.jmh",
+    "1.32",
+    listOf("jmh-core", "jmh-generator-bytecode")
+  ),
+  DependencySet(
     "org.testcontainers",
     "1.15.3",
     listOf("testcontainers", "junit-jupiter")

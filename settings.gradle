@@ -64,6 +64,9 @@ include ':agent:agent'
 // misc
 include(":dependencyManagement")
 
+include(":benchmark-overhead-jmh")
+include(":benchmark-jfr-analyzer")
+
 // Projects for smokeTests
 include ':test:smoke'
 include ':test:smoke:appServers'

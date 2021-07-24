@@ -67,6 +67,10 @@ public class MainEntryPoint {
   // TODO turn this into an interceptor
   @SuppressWarnings("SystemOut")
   public static void start(Instrumentation instrumentation, File javaagentFile) {
+    if (Boolean.getBoolean("applicationinsights.testing.disabled")) {
+      return;
+    }
+
     boolean success = false;
     Logger startupLogger = null;
     String version = "(unknown)";
