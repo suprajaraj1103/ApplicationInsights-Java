@@ -22,7 +22,6 @@
 package com.microsoft.applicationinsights.agent.internal.perfcounter;
 
 import java.lang.management.ManagementFactory;
-import java.lang.management.OperatingSystemMXBean;
 import java.lang.management.RuntimeMXBean;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
@@ -34,6 +33,8 @@ public final class CpuPerformanceCounterCalculator {
   private static final Logger logger =
       LoggerFactory.getLogger(CpuPerformanceCounterCalculator.class);
 
+  private final RuntimeMXBean runtimeMxBean;
+
   private final int numberOfCpus;
 
   private long prevUpTime;
@@ -42,15 +43,13 @@ public final class CpuPerformanceCounterCalculator {
   private ObjectName osBean;
 
   public CpuPerformanceCounterCalculator() {
-    OperatingSystemMXBean operatingSystemMxBean = ManagementFactory.getOperatingSystemMXBean();
-    numberOfCpus = operatingSystemMxBean.getAvailableProcessors();
+    runtimeMxBean = ManagementFactory.getRuntimeMXBean();
+    numberOfCpus = ManagementFactory.getOperatingSystemMXBean().getAvailableProcessors();
   }
 
   public Double getProcessCpuUsage() {
     Double processCpuUsage = null;
     try {
-      RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
-
       long upTime = runtimeMxBean.getUptime();
       long processCpuTime = getProcessCpuTime();
 
