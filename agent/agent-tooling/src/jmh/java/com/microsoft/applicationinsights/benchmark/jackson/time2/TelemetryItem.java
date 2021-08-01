@@ -19,30 +19,20 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package com.microsoft.applicationinsights.agent.internal.telemetry;
+package com.microsoft.applicationinsights.benchmark.jackson.time2;
 
-import static java.util.concurrent.TimeUnit.NANOSECONDS;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import com.microsoft.applicationinsights.agent.internal.exporter.models.TimeData;
-import java.util.Date;
+public class TelemetryItem {
 
-public class FormattedTime {
+  @JsonProperty(value = "time", required = true)
+  private String time;
 
-  public static TimeData offSetDateTimeFromNow() {
-    return offSetDateTimeFromEpochMillis(System.currentTimeMillis());
+  public void setTime(String time) {
+    this.time = time;
   }
 
-  public static TimeData offSetDateTimeFromDate(Date date) {
-    return offSetDateTimeFromEpochMillis(date.getTime());
+  public String getTime() {
+    return time;
   }
-
-  public static TimeData offSetDateTimeFromEpochNanos(long epochNanos) {
-    return offSetDateTimeFromEpochMillis(NANOSECONDS.toMillis(epochNanos));
-  }
-
-  public static TimeData offSetDateTimeFromEpochMillis(long epochMillis) {
-    return new TimeData(epochMillis);
-  }
-
-  private FormattedTime() {}
 }

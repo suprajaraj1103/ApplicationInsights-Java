@@ -19,30 +19,40 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package com.microsoft.applicationinsights.agent.internal.telemetry;
+package com.microsoft.applicationinsights.agent.internal.exporter.models;
 
-import static java.util.concurrent.TimeUnit.NANOSECONDS;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import com.microsoft.applicationinsights.agent.internal.exporter.models.TimeData;
-import java.util.Date;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.text.SimpleDateFormat;
+import java.util.TimeZone;
+import org.junit.jupiter.api.Test;
 
-public class FormattedTime {
+public class TimeDataTest {
 
-  public static TimeData offSetDateTimeFromNow() {
-    return offSetDateTimeFromEpochMillis(System.currentTimeMillis());
+  @Test
+  public void test() throws IOException {
+    // given
+    long epochMillis = System.currentTimeMillis();
+
+    StringWriter sw = new StringWriter();
+    ObjectMapper mapper = new ObjectMapper();
+    JsonGenerator gen = mapper.createGenerator(sw);
+
+    // when
+    gen.writeObject(new TimeData(epochMillis));
+    gen.flush();
+
+    // then
+    assertThat(sw.toString()).isEqualTo("\"" + fromEpochMillis(epochMillis) + "\"");
   }
 
-  public static TimeData offSetDateTimeFromDate(Date date) {
-    return offSetDateTimeFromEpochMillis(date.getTime());
+  private static String fromEpochMillis(long epochMillis) {
+    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+    simpleDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    return simpleDateFormat.format(epochMillis);
   }
-
-  public static TimeData offSetDateTimeFromEpochNanos(long epochNanos) {
-    return offSetDateTimeFromEpochMillis(NANOSECONDS.toMillis(epochNanos));
-  }
-
-  public static TimeData offSetDateTimeFromEpochMillis(long epochMillis) {
-    return new TimeData(epochMillis);
-  }
-
-  private FormattedTime() {}
 }

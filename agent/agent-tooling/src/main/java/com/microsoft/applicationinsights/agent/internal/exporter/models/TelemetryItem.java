@@ -25,7 +25,6 @@ import static com.microsoft.applicationinsights.agent.internal.common.TelemetryT
 
 import com.azure.core.annotation.Fluent;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.time.OffsetDateTime;
 import java.util.Map;
 
 /** System variables for a telemetry item. */
@@ -58,7 +57,7 @@ public final class TelemetryItem {
    * 2009-06-15T13:45:30.0000000Z.
    */
   @JsonProperty(value = "time", required = true)
-  private OffsetDateTime time;
+  private TimeData time;
 
   /*
    * Sampling rate used in application. This telemetry item represents 100 /
@@ -145,7 +144,7 @@ public final class TelemetryItem {
    *
    * @return the time value.
    */
-  public OffsetDateTime getTime() {
+  public TimeData getTime() {
     return this.time;
   }
 
@@ -161,7 +160,7 @@ public final class TelemetryItem {
    * @param time the time value to set.
    * @return the TelemetryItem object itself.
    */
-  public TelemetryItem setTime(OffsetDateTime time) {
+  public TelemetryItem setTime(TimeData time) {
     this.time = time;
     return this;
   }
