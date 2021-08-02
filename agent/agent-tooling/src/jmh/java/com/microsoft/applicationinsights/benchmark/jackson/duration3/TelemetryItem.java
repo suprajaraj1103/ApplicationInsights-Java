@@ -19,20 +19,20 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package com.microsoft.applicationinsights.agent.internal.telemetry;
+package com.microsoft.applicationinsights.benchmark.jackson.duration3;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import com.microsoft.applicationinsights.agent.internal.exporter.models.DurationData;
+public class TelemetryItem {
 
-public class FormattedDuration {
-  public static DurationData fromNanos(long durationNanos) {
-    return new DurationData(durationNanos);
+  @JsonProperty(value = "duration", required = true)
+  private String duration;
+
+  public void setDuration(String duration) {
+    this.duration = duration;
   }
 
-  public static DurationData fromMillis(long durationMillis) {
-    return new DurationData(MILLISECONDS.toNanos(durationMillis));
+  public String getDuration() {
+    return duration;
   }
-
-  private FormattedDuration() {}
 }

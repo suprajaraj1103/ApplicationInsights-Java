@@ -22,8 +22,10 @@
 package com.microsoft.applicationinsights.agent.internal.quickpulse;
 
 import static com.microsoft.applicationinsights.agent.internal.telemetry.TelemetryUtil.getExceptions;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.microsoft.applicationinsights.agent.internal.exporter.models.DurationData;
 import com.microsoft.applicationinsights.agent.internal.exporter.models.RemoteDependencyData;
 import com.microsoft.applicationinsights.agent.internal.exporter.models.RequestData;
 import com.microsoft.applicationinsights.agent.internal.exporter.models.TelemetryExceptionData;
@@ -31,10 +33,8 @@ import com.microsoft.applicationinsights.agent.internal.exporter.models.Telemetr
 import com.microsoft.applicationinsights.agent.internal.quickpulse.QuickPulseDataCollector.CountAndDuration;
 import com.microsoft.applicationinsights.agent.internal.quickpulse.QuickPulseDataCollector.Counters;
 import com.microsoft.applicationinsights.agent.internal.quickpulse.QuickPulseDataCollector.FinalCounters;
-import com.microsoft.applicationinsights.agent.internal.telemetry.FormattedDuration;
 import com.microsoft.applicationinsights.agent.internal.telemetry.FormattedTime;
 import com.microsoft.applicationinsights.agent.internal.telemetry.TelemetryClient;
-import java.time.Duration;
 import java.util.Date;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -192,57 +192,6 @@ class QuickPulseDataCollectorTests {
     assertThat(inputs.duration).isEqualTo(duration);
   }
 
-  @Test
-  void parseDurations() {
-    assertThat(QuickPulseDataCollector.parseDurationToMillis("00:00:00.123456")).isEqualTo(123);
-    // current behavior rounds down (not sure if that's good or not?)
-    assertThat(QuickPulseDataCollector.parseDurationToMillis("00:00:00.123999")).isEqualTo(123);
-    assertThat(QuickPulseDataCollector.parseDurationToMillis("00:00:01.123456"))
-        .isEqualTo(Duration.ofSeconds(1).plusMillis(123).toMillis());
-    assertThat(QuickPulseDataCollector.parseDurationToMillis("00:00:12.123456"))
-        .isEqualTo(Duration.ofSeconds(12).plusMillis(123).toMillis());
-    assertThat(QuickPulseDataCollector.parseDurationToMillis("00:01:23.123456"))
-        .isEqualTo(Duration.ofMinutes(1).plusSeconds(23).plusMillis(123).toMillis());
-    assertThat(QuickPulseDataCollector.parseDurationToMillis("00:12:34.123456"))
-        .isEqualTo(Duration.ofMinutes(12).plusSeconds(34).plusMillis(123).toMillis());
-    assertThat(QuickPulseDataCollector.parseDurationToMillis("01:23:45.123456"))
-        .isEqualTo(Duration.ofHours(1).plusMinutes(23).plusSeconds(45).plusMillis(123).toMillis());
-    assertThat(QuickPulseDataCollector.parseDurationToMillis("12:34:56.123456"))
-        .isEqualTo(Duration.ofHours(12).plusMinutes(34).plusSeconds(56).plusMillis(123).toMillis());
-    assertThat(QuickPulseDataCollector.parseDurationToMillis("1.22:33:44.123456"))
-        .isEqualTo(
-            Duration.ofDays(1)
-                .plusHours(22)
-                .plusMinutes(33)
-                .plusSeconds(44)
-                .plusMillis(123)
-                .toMillis());
-    assertThat(QuickPulseDataCollector.parseDurationToMillis("11.22:33:44.123456"))
-        .isEqualTo(
-            Duration.ofDays(11)
-                .plusHours(22)
-                .plusMinutes(33)
-                .plusSeconds(44)
-                .plusMillis(123)
-                .toMillis());
-    assertThat(QuickPulseDataCollector.parseDurationToMillis("111.22:33:44.123456"))
-        .isEqualTo(
-            Duration.ofDays(111)
-                .plusHours(22)
-                .plusMinutes(33)
-                .plusSeconds(44)
-                .plusMillis(123)
-                .toMillis());
-    assertThat(QuickPulseDataCollector.parseDurationToMillis("1111.22:33:44.123456"))
-        .isEqualTo(
-            Duration.ofDays(1111)
-                .plusHours(22)
-                .plusMinutes(33)
-                .plusSeconds(44)
-                .plusMillis(123)
-                .toMillis());
-  }
-
   private static TelemetryItem createRequestTelemetry(
       String name, Date timestamp, long durationMillis, String responseCode, boolean success) {
     TelemetryItem telemetry = new TelemetryItem();
@@ -250,7 +199,7 @@ class QuickPulseDataCollectorTests {
     new TelemetryClient().initRequestTelemetry(telemetry, data);
 
     data.setName(name);
-    data.setDuration(FormattedDuration.fromMillis(durationMillis));
+    data.setDuration(new DurationData(MILLISECONDS.toNanos(durationMillis)));
     data.setResponseCode(responseCode);
     data.setSuccess(success);
 
@@ -266,7 +215,7 @@ class QuickPulseDataCollectorTests {
 
     data.setName(name);
     data.setData(command);
-    data.setDuration(FormattedDuration.fromMillis(durationMillis));
+    data.setDuration(new DurationData(MILLISECONDS.toNanos(durationMillis)));
     data.setSuccess(success);
 
     return telemetry;

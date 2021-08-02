@@ -21,6 +21,8 @@
 
 package com.microsoft.applicationinsights.agent.internal.quickpulse;
 
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
+
 import com.microsoft.applicationinsights.agent.internal.exporter.models.MonitorDomain;
 import com.microsoft.applicationinsights.agent.internal.exporter.models.RemoteDependencyData;
 import com.microsoft.applicationinsights.agent.internal.exporter.models.RequestData;
@@ -215,8 +217,8 @@ public enum QuickPulseDataCollector {
     if (counters == null) {
       return;
     }
-    counters.rddsAndDuations.addAndGet(
-        Counters.encodeCountAndDuration(itemCount, parseDurationToMillis(telemetry.getDuration())));
+    long durationMillis = NANOSECONDS.toMillis(telemetry.getDuration().getNanoseconds());
+    counters.rddsAndDuations.addAndGet(Counters.encodeCountAndDuration(itemCount, durationMillis));
     Boolean success = telemetry.isSuccess();
     if (success != null && !success) { // success should not be null
       counters.unsuccessfulRdds.incrementAndGet();
@@ -238,77 +240,11 @@ public enum QuickPulseDataCollector {
       return;
     }
 
+    long durationMillis = NANOSECONDS.toMillis(requestTelemetry.getDuration().getNanoseconds());
     counters.requestsAndDurations.addAndGet(
-        Counters.encodeCountAndDuration(
-            itemCount, parseDurationToMillis(requestTelemetry.getDuration())));
+        Counters.encodeCountAndDuration(itemCount, durationMillis));
     if (!requestTelemetry.isSuccess()) {
       counters.unsuccessfulRequests.incrementAndGet();
     }
-  }
-
-  // TODO (trask) optimization: move live metrics request capture to OpenTelemetry layer so don't
-  // have to parse String duration
-  // visible for testing
-  static long parseDurationToMillis(String duration) {
-    // format is DD.HH:MM:SS.MMMMMM
-    return startingAtDaysOrHours(duration);
-  }
-
-  private static long startingAtDaysOrHours(String duration) {
-    int i = 0;
-    char c = duration.charAt(i++);
-    long daysOrHours = charToInt(c);
-
-    c = duration.charAt(i++);
-    while (c != ':' && c != '.') {
-      daysOrHours = 10 * daysOrHours + charToInt(c);
-      c = duration.charAt(i++);
-    }
-    if (c == ':') {
-      // was really hours
-      return startingAtMinutes(duration, i, daysOrHours);
-    } else {
-      return startingAtHours(duration, i, daysOrHours);
-    }
-  }
-
-  private static long startingAtHours(String duration, int i, long runningTotalInDays) {
-    char c1 = duration.charAt(i++);
-    char c2 = duration.charAt(i++);
-    int hours = 10 * charToInt(c1) + charToInt(c2);
-    return startingAtMinutes(duration, i + 1, 24 * runningTotalInDays + hours);
-  }
-
-  private static long startingAtMinutes(String duration, int i, long runningTotalInHours) {
-    char c1 = duration.charAt(i++);
-    char c2 = duration.charAt(i++);
-    int minutes = 10 * charToInt(c1) + charToInt(c2);
-    // next char must be ':'
-    return startingAtSeconds(duration, i + 1, 60 * runningTotalInHours + minutes);
-  }
-
-  private static long startingAtSeconds(String duration, int i, long runningTotalInMinutes) {
-    char c1 = duration.charAt(i++);
-    char c2 = duration.charAt(i++);
-    int seconds = 10 * charToInt(c1) + charToInt(c2);
-    return startingAtMicros(duration, i + 1, 60 * runningTotalInMinutes + seconds);
-  }
-
-  private static long startingAtMicros(String duration, int i, long runningTotalInSeconds) {
-    int millis = 0;
-    // only care about milliseconds
-    for (int j = i; j < i + 3; j++) {
-      char c = duration.charAt(j);
-      millis = 10 * millis + charToInt(c);
-    }
-    return 1000 * runningTotalInSeconds + millis;
-  }
-
-  private static int charToInt(char c) {
-    int x = c - '0';
-    if (x < 0 || x > 9) {
-      throw new AssertionError("Unexpected char '" + c + "'");
-    }
-    return x;
   }
 }

@@ -61,7 +61,7 @@ public final class PageViewData extends MonitorDomain {
    * than 1000 days.
    */
   @JsonProperty(value = "duration")
-  private String duration;
+  private DurationData duration;
 
   /*
    * Fully qualified page URI or URL of the referring page; if unknown, leave
@@ -153,7 +153,7 @@ public final class PageViewData extends MonitorDomain {
    *
    * @return the duration value.
    */
-  public String getDuration() {
+  public DurationData getDuration() {
     return this.duration;
   }
 
@@ -165,7 +165,7 @@ public final class PageViewData extends MonitorDomain {
    * @param duration the duration value to set.
    * @return the PageViewData object itself.
    */
-  public PageViewData setDuration(String duration) {
+  public PageViewData setDuration(DurationData duration) {
     this.duration = duration;
     return this;
   }

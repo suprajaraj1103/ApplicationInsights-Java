@@ -86,7 +86,7 @@ public final class RemoteDependencyData extends MonitorDomain {
    * days.
    */
   @JsonProperty(value = "duration", required = true)
-  private String duration;
+  private DurationData duration;
 
   /*
    * Indication of successful or unsuccessful call.
@@ -248,7 +248,7 @@ public final class RemoteDependencyData extends MonitorDomain {
    *
    * @return the duration value.
    */
-  public String getDuration() {
+  public DurationData getDuration() {
     return this.duration;
   }
 
@@ -259,7 +259,7 @@ public final class RemoteDependencyData extends MonitorDomain {
    * @param duration the duration value to set.
    * @return the RemoteDependencyData object itself.
    */
-  public RemoteDependencyData setDuration(String duration) {
+  public RemoteDependencyData setDuration(DurationData duration) {
     this.duration = duration;
     return this;
   }

@@ -19,20 +19,14 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package com.microsoft.applicationinsights.agent.internal.telemetry;
+package com.microsoft.applicationinsights.agent.internal.exporter.models;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import org.junit.jupiter.api.Test;
 
-import com.microsoft.applicationinsights.agent.internal.exporter.models.DurationData;
+public class DurationDataTest {
 
-public class FormattedDuration {
-  public static DurationData fromNanos(long durationNanos) {
-    return new DurationData(durationNanos);
+  @Test
+  public void test() {
+    // TODO
   }
-
-  public static DurationData fromMillis(long durationMillis) {
-    return new DurationData(MILLISECONDS.toNanos(durationMillis));
-  }
-
-  private FormattedDuration() {}
 }
