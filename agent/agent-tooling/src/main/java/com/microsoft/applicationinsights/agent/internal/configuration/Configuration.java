@@ -191,6 +191,10 @@ public class Configuration {
     // ignoreRemoteParentNotSampled is currently needed
     // because .NET SDK always propagates trace flags "00" (not sampled)
     public boolean ignoreRemoteParentNotSampled = true;
+    // FIXME (trask) what should the default be?
+    // nice thing about controller spans: nice for devs, ties into code, other APM tools capture
+    // nice thing about no controller spans: Span.current() gives SERVER span today
+    public boolean captureControllerSpans = true;
     // this is just here to detect if using this old setting in order to give a helpful message
     @Deprecated public boolean httpMethodInOperationName;
     public LiveMetrics liveMetrics = new LiveMetrics();
