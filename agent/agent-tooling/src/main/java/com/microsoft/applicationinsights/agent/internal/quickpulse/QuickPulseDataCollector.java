@@ -33,6 +33,7 @@ import java.lang.management.MemoryMXBean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.LoggerFactory;
 
 public enum QuickPulseDataCollector {
@@ -157,6 +158,7 @@ public enum QuickPulseDataCollector {
     counters.set(new Counters());
   }
 
+  @Nullable
   public synchronized FinalCounters getAndRestart() {
     Counters currentCounters = counters.getAndSet(new Counters());
     if (currentCounters != null) {
@@ -167,6 +169,7 @@ public enum QuickPulseDataCollector {
   }
 
   /*@VisibleForTesting*/
+  @Nullable
   synchronized FinalCounters peek() {
     Counters currentCounters = this.counters.get(); // this should be the only differece
     if (currentCounters != null) {
