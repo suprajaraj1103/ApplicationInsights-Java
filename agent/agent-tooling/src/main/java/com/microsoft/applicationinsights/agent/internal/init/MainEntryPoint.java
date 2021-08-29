@@ -76,6 +76,9 @@ public class MainEntryPoint {
         instrumentation.retransformClasses(Class.forName("java.util.jar.JarVerifier"));
         instrumentation.removeTransformer(transformer);
       }
+      // temporary until OpenTelemetry SDK 1.6.0 is release
+      // which contains https://github.com/open-telemetry/opentelemetry-java/pull/3564
+      instrumentation.addTransformer(new TemporaryOpenTelemetrySdkTransformer());
       Path agentPath = javaagentFile.toPath();
       // need to initialize version before initializing DiagnosticsHelper
       version = SdkVersionFinder.initVersion(agentPath);
