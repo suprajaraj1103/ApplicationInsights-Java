@@ -85,9 +85,9 @@ public class InheritedAttributesSpanProcessorTest {
 
   @Test
   public void shouldInheritAttribute() {
-    Configuration.InheritedAttribute inheritedAttribute = new Configuration.InheritedAttribute();
+    Configuration.Attribute inheritedAttribute = new Configuration.Attribute();
     inheritedAttribute.key = "one";
-    inheritedAttribute.type = Configuration.SpanAttributeType.STRING;
+    inheritedAttribute.type = Configuration.AttributeType.STRING;
 
     Tracer tracer = newTracer(Collections.singletonList(inheritedAttribute));
     Span span =
@@ -125,9 +125,9 @@ public class InheritedAttributesSpanProcessorTest {
 
   @Test
   public void shouldNotInheritAttributeWithSameNameButDifferentType() {
-    Configuration.InheritedAttribute inheritedAttribute = new Configuration.InheritedAttribute();
+    Configuration.Attribute inheritedAttribute = new Configuration.Attribute();
     inheritedAttribute.key = "one";
-    inheritedAttribute.type = Configuration.SpanAttributeType.STRING;
+    inheritedAttribute.type = Configuration.AttributeType.STRING;
 
     Tracer tracer = newTracer(Collections.singletonList(inheritedAttribute));
     Span span = tracer.spanBuilder("parent").setNoParent().setAttribute(oneLongKey, 1L).startSpan();
@@ -156,7 +156,7 @@ public class InheritedAttributesSpanProcessorTest {
                                         .containsOnly(entry(oneLongKey, 1L)))));
   }
 
-  private Tracer newTracer(List<Configuration.InheritedAttribute> inheritedAttributes) {
+  private Tracer newTracer(List<Configuration.Attribute> inheritedAttributes) {
     OpenTelemetrySdk sdk =
         OpenTelemetrySdk.builder()
             .setTracerProvider(

@@ -26,6 +26,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 import com.microsoft.applicationinsights.agent.internal.common.OperationLogger;
 import com.microsoft.applicationinsights.agent.internal.common.Strings;
+import com.microsoft.applicationinsights.agent.internal.configuration.Configuration;
 import com.microsoft.applicationinsights.agent.internal.exporter.models.ContextTagKeys;
 import com.microsoft.applicationinsights.agent.internal.exporter.models.MessageData;
 import com.microsoft.applicationinsights.agent.internal.exporter.models.MonitorDomain;
@@ -48,6 +49,7 @@ import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.instrumentation.api.aisdk.AiAppId;
 import io.opentelemetry.sdk.common.CompletableResultCode;
+import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.data.EventData;
 import io.opentelemetry.sdk.trace.data.LinkData;
 import io.opentelemetry.sdk.trace.data.SpanData;
@@ -62,6 +64,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -152,9 +155,15 @@ public class Exporter implements SpanExporter {
   }
 
   private final TelemetryClient telemetryClient;
+  private final List<AttributeKey<?>> resourceAttributeKeys;
 
-  public Exporter(TelemetryClient telemetryClient) {
+  public Exporter(
+      TelemetryClient telemetryClient, List<Configuration.Attribute> resourceAttributes) {
     this.telemetryClient = telemetryClient;
+    this.resourceAttributeKeys =
+        resourceAttributes.stream()
+            .map(Configuration.Attribute::getAttributeKey)
+            .collect(Collectors.toList());
   }
 
   @Override
@@ -254,7 +263,7 @@ public class Exporter implements SpanExporter {
     setOperationTags(telemetry, span);
     setTime(telemetry, span.getStartEpochNanos());
     setSampleRate(telemetry, samplingPercentage);
-    setExtraAttributes(telemetry, data, span.getAttributes());
+    setExtraAttributes(telemetry, data, span.getAttributes(), span.getResource());
     addLinks(data, span.getLinks());
 
     // set dependency-specific properties
@@ -345,7 +354,7 @@ public class Exporter implements SpanExporter {
     setTime(telemetry, span.getStartEpochNanos());
     setOperationTags(telemetry, span);
     setSampleRate(telemetry, span);
-    setExtraAttributes(telemetry, data, attributes);
+    setExtraAttributes(telemetry, data, attributes, span.getResource());
 
     // set message-specific properties
     String level = attributes.get(AI_LOG_LEVEL_KEY);
@@ -373,7 +382,7 @@ public class Exporter implements SpanExporter {
     setOperationTags(telemetry, span);
     setTime(telemetry, span.getStartEpochNanos());
     setSampleRate(telemetry, span);
-    setExtraAttributes(telemetry, data, attributes);
+    setExtraAttributes(telemetry, data, attributes, span.getResource());
 
     // set exception-specific properties
     String level = attributes.get(AI_LOG_LEVEL_KEY);
@@ -687,7 +696,7 @@ public class Exporter implements SpanExporter {
     data.setId(span.getSpanId());
     setTime(telemetry, startEpochNanos);
     setSampleRate(telemetry, samplingPercentage);
-    setExtraAttributes(telemetry, data, attributes);
+    setExtraAttributes(telemetry, data, attributes, span.getResource());
     addLinks(data, span.getLinks());
 
     String operationName = getOperationName(span);
@@ -856,7 +865,7 @@ public class Exporter implements SpanExporter {
         setOperationName(telemetry, span.getAttributes());
       }
       setTime(telemetry, event.getEpochNanos());
-      setExtraAttributes(telemetry, data, event.getAttributes());
+      setExtraAttributes(telemetry, data, event.getAttributes(), span.getResource());
       setSampleRate(telemetry, samplingPercentage);
 
       // set message-specific properties
@@ -927,8 +936,8 @@ public class Exporter implements SpanExporter {
     TelemetryUtil.getProperties(data).put("_MS.links", sb.toString());
   }
 
-  private static void setExtraAttributes(
-      TelemetryItem telemetry, MonitorDomain data, Attributes attributes) {
+  private void setExtraAttributes(
+      TelemetryItem telemetry, MonitorDomain data, Attributes attributes, Resource resource) {
     attributes.forEach(
         (key, value) -> {
           String stringKey = key.getKey();
@@ -975,11 +984,20 @@ public class Exporter implements SpanExporter {
           if (STANDARD_ATTRIBUTE_PREFIXES.contains(prefix)) {
             return;
           }
-          String val = getStringValue(key, value);
+          String stringValue = getStringValue(key, value);
           if (value != null) {
-            TelemetryUtil.getProperties(data).put(key.getKey(), val);
+            TelemetryUtil.getProperties(data).put(key.getKey(), stringValue);
           }
         });
+    for (AttributeKey<?> resourceAttributeKey : resourceAttributeKeys) {
+      Object value = resource.getAttribute(resourceAttributeKey);
+      if (value != null) {
+        String stringValue = getStringValue(resourceAttributeKey, value);
+        if (stringValue != null) {
+          TelemetryUtil.getProperties(data).put(resourceAttributeKey.getKey(), stringValue);
+        }
+      }
+    }
   }
 
   private static String getStringValue(AttributeKey<?> attributeKey, Object value) {

@@ -200,16 +200,21 @@ public class Configuration {
     public LiveMetrics liveMetrics = new LiveMetrics();
     public LegacyRequestIdPropagation legacyRequestIdPropagation = new LegacyRequestIdPropagation();
 
-    public List<InheritedAttribute> inheritedAttributes = new ArrayList<>();
+    // TODO (trask) revisit "name:type" format
+    public List<Attribute> inheritedAttributes = new ArrayList<>();
 
     public ProfilerConfiguration profiler = new ProfilerConfiguration();
     public GcEventConfiguration gcEvents = new GcEventConfiguration();
     public AadAuthentication authentication = new AadAuthentication();
+
+    // TODO (trask) what about combining this with customDimensions?
+    //  also, revisit "name:type" format
+    public List<Attribute> resourceAttributes = new ArrayList<>();
   }
 
-  public static class InheritedAttribute {
+  public static class Attribute {
     public String key;
-    public SpanAttributeType type;
+    public AttributeType type;
 
     public AttributeKey<?> getAttributeKey() {
       switch (type) {
@@ -234,7 +239,7 @@ public class Configuration {
     }
   }
 
-  public enum SpanAttributeType {
+  public enum AttributeType {
     @JsonProperty("string")
     STRING,
     @JsonProperty("boolean")

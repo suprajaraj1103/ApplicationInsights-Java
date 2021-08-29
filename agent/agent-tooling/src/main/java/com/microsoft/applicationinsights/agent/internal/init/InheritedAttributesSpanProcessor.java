@@ -35,11 +35,10 @@ public class InheritedAttributesSpanProcessor implements SpanProcessor {
 
   private final List<AttributeKey<?>> inheritAttributeKeys;
 
-  public InheritedAttributesSpanProcessor(
-      List<Configuration.InheritedAttribute> inheritedAttributes) {
+  public InheritedAttributesSpanProcessor(List<Configuration.Attribute> inheritedAttributes) {
     this.inheritAttributeKeys =
         inheritedAttributes.stream()
-            .map(Configuration.InheritedAttribute::getAttributeKey)
+            .map(Configuration.Attribute::getAttributeKey)
             .collect(Collectors.toList());
   }
 
