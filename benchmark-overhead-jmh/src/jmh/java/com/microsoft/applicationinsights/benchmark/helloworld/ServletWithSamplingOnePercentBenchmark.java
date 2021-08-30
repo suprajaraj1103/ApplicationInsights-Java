@@ -27,4 +27,4 @@ import org.openjdk.jmh.annotations.Fork;
 @Fork(
     jvmArgsAppend =
         "-Dapplicationinsights.configuration.file=../../../../benchmark-overhead-jmh/src/agent/config/sampling-one-percent.json")
-public class ServletWithOnePercentSamplingBenchmark extends ServletBenchmark {}
+public class ServletWithSamplingOnePercentBenchmark extends ServletBenchmark {}
