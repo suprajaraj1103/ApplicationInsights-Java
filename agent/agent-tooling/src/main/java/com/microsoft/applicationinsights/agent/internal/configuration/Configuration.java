@@ -31,10 +31,12 @@ import com.microsoft.applicationinsights.agent.bootstrap.diagnostics.status.Stat
 import com.microsoft.applicationinsights.agent.internal.common.FriendlyException;
 import io.opentelemetry.api.common.AttributeKey;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
@@ -204,6 +206,10 @@ public class Configuration {
     // this is needed to unblock customer, but is not the ideal long-term solution
     // https://portal.microsofticm.com/imp/v3/incidents/details/266992200/home
     public boolean disablePropagation;
+    // this is to support interoperability with other systems
+    // intentionally not allowing the removal of w3c propagator since that is key to many Azure
+    // integrated experiences
+    public List<String> additionalPropagators = new ArrayList<>();
 
     public List<InheritedAttribute> inheritedAttributes = new ArrayList<>();
 
@@ -213,6 +219,32 @@ public class Configuration {
     public PreviewStatsbeat statsbeat = new PreviewStatsbeat();
 
     public List<InstrumentationKeyOverride> instrumentationKeyOverrides = new ArrayList<>();
+
+    private static final Set<String> VALID_ADDITIONAL_PROPAGATORS =
+        Collections.singleton("b3multi");
+
+    public void validate() {
+      for (Configuration.SamplingOverride samplingOverride : sampling.overrides) {
+        samplingOverride.validate();
+      }
+      for (Configuration.InstrumentationKeyOverride instrumentationKeyOverride :
+          instrumentationKeyOverrides) {
+        instrumentationKeyOverride.validate();
+      }
+      for (ProcessorConfig processorConfig : processors) {
+        processorConfig.validate();
+      }
+      authentication.validate();
+
+      for (String additionalPropagator : additionalPropagators) {
+        if (!VALID_ADDITIONAL_PROPAGATORS.contains(additionalPropagator)) {
+          throw new FriendlyException(
+              "The \"additionalPropagators\" configuration contains an invalid entry: "
+                  + additionalPropagator,
+              "Please provide only valid values for \"additionalPropagators\" configuration.");
+        }
+      }
+    }
   }
 
   public static class InheritedAttribute {
